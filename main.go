@@ -8,7 +8,6 @@ import (
 
 	commands "tgmarkovbreadgo/commands"
 	db "tgmarkovbreadgo/database"
-	gen "tgmarkovbreadgo/generate"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -49,10 +48,10 @@ func addMsg(id int64, txt string) {
 	}
 }
 
-func tryToGen(id int64) {
-	rnd := rand.Intn(4)
-	if rnd == 0 {
-		gen.Generate(dbApi, id)
+func tryToGen(update tgbotapi.Update) {
+	rnd := rand.Intn(8)
+	if rnd == 3 {
+		command["gen"].Func(update)
 	}
 }
 
@@ -69,7 +68,9 @@ func handle(update tgbotapi.Update) {
 				addMsg(update.FromChat().ID, update.Message.Caption)
 			}
 
-			tryToGen(update.Message.Chat.ID)
+			if update.Message.IsCommand() == false {
+				tryToGen(update)
+			}
 		}
 	}
 }

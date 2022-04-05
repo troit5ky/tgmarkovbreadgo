@@ -14,8 +14,15 @@ var genCmd = Command{
 
 func gen(update tgbotapi.Update) {
 	id := update.Message.Chat.ID
-	result, _ := markov.Generate(dbApi, id)
+	result := markov.Generate(dbApi, id)
+	msg := tgbotapi.NewMessage(id, "")
 
-	msg := tgbotapi.NewMessage(id, result)
+	if result == "" {
+		msg.Text = "🧐 Мало данных для генерации"
+		bot.Send(msg)
+		return
+	}
+
+	msg.Text = result
 	bot.Send(msg)
 }

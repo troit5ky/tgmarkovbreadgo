@@ -1,20 +1,17 @@
 package generate
 
 import (
-	"errors"
 	db "tgmarkovbreadgo/database"
 
 	markov "cpl.li/go/markov"
 )
 
-func Generate(db *db.Api, id int64) (string, error) {
+func Generate(db *db.Api, id int64) string {
 	var result string
-	var err error
 
 	defer func() {
 		if rec := recover(); rec != nil {
-			err = errors.New("🧐 Мало данных для генерации")
-			result = err.Error()
+			return
 		}
 	}()
 
@@ -25,5 +22,5 @@ func Generate(db *db.Api, id int64) (string, error) {
 	b.Generate(100 - ch.PairSize)
 	result = b.String()
 
-	return result, err
+	return result
 }
