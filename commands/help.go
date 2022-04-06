@@ -17,12 +17,15 @@ var helpCmd = Command{
 func help(update tgbotapi.Update) {
 	arg := strings.ToLower(update.Message.CommandArguments())
 	cmds := new(bytes.Buffer)
+	msg := tgbotapi.NewMessage(update.FromChat().ID, "")
+	msg.ReplyToMessageID = update.Message.MessageID
 
-	if len(arg) > 1 {
+	if len(arg) > 0 {
 		if cmd, isValid := commands[arg]; isValid {
-			text := fmt.Sprintf("📚 Команда /%s\n\nИспользование:\n /%s %s\n\nПример:\n /%s %s", arg, arg, cmd.Help, arg, cmd.Usage)
-			msg := tgbotapi.NewMessage(update.FromChat().ID, text)
-			msg.ReplyToMessageID = update.Message.MessageID
+			msg.Text = fmt.Sprintf("📚 Команда /%s\n\nИспользование:\n /%s %s\n\nПример:\n /%s %s", arg, arg, cmd.Help, arg, cmd.Usage)
+			bot.Send(msg)
+		} else {
+			msg.Text = "🤔 Я не нашёл такой команды"
 			bot.Send(msg)
 		}
 		return
@@ -32,8 +35,6 @@ func help(update tgbotapi.Update) {
 		fmt.Fprintf(cmds, "/%s\n", cmd)
 	}
 
-	text := fmt.Sprintf("📚 Список команд:\n%s\nПодробнее: /help команда | /help weather", cmds.String())
-	msg := tgbotapi.NewMessage(update.FromChat().ID, text)
-	msg.ReplyToMessageID = update.Message.MessageID
+	msg.Text = fmt.Sprintf("📚 Список команд:\n%s\nПодробнее: /help команда | /help weather", cmds.String())
 	bot.Send(msg)
 }

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"regexp"
 	"strings"
+	"time"
 
 	commands "tgmarkovbreadgo/commands"
 	db "tgmarkovbreadgo/database"
@@ -15,18 +17,22 @@ import (
 var (
 	token    = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
 	dbApi    *db.Api
+	bot      *tgbotapi.BotAPI
 	command  commands.CommandList
 	rg, _    = regexp.Compile(`(\s+)`)
 	replacer = strings.NewReplacer("\n", " ")
+	lastMsg  = make(map[int64]int64)
 )
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI(token)
+	_bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	log.Println("Authorized at " + bot.Self.UserName)
+	bot = _bot
+
+	log.Println("Authorized at @" + bot.Self.UserName)
 
 	dbApi = db.Init()
 	command = commands.Init(bot, dbApi)
@@ -55,12 +61,24 @@ func tryToGen(update tgbotapi.Update) {
 	}
 }
 
+func spamErr(update tgbotapi.Update) {
+	msg := tgbotapi.NewMessage(update.FromChat().ID, "")
+	msg.Text = fmt.Sprintf("⌛️ Подожди %d сек...", 10-(time.Now().Unix()-lastMsg[update.Message.From.ID]))
+	msg.ReplyToMessageID = update.Message.MessageID
+	bot.Send(msg)
+}
+
 func handle(update tgbotapi.Update) {
 	if update.Message != nil {
-		if update.Message.Chat.IsPrivate() == false {
-			if update.Message.IsCommand() {
+		if update.Message.Chat.IsPrivate() == false && update.Message.Time().Add(time.Minute*15).Unix() > time.Now().Unix() {
+			if update.Message.IsCommand() && strings.HasSuffix(update.Message.CommandWithAt(), "@"+bot.Self.UserName) {
 				if cmd, ok := command[update.Message.Command()]; ok {
-					cmd.Func(update)
+					if lastMsg[update.Message.From.ID]+9 < time.Now().Unix() {
+						cmd.Func(update)
+						lastMsg[update.Message.From.ID] = time.Now().Unix()
+					} else {
+						spamErr(update)
+					}
 				}
 			} else if update.Message.Text != "" {
 				addMsg(update.FromChat().ID, update.Message.Text)

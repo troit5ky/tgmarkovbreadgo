@@ -9,7 +9,7 @@ var startCmd = Command{
 }
 
 func start(update tgbotapi.Update) {
-	msg := tgbotapi.NewMessage(update.FromChat().ID, "👋 Запущен")
+	msg := tgbotapi.NewMessage(update.FromChat().ID, "👋 Привет, я умею генерировать сообщения, изучая ваши разговоры.\n📚 Посмотреть команды можно в /help\n\nP.S. я отправляю сообщения сам, но их можно сгенерироавть с помощью /gen")
 	msg.ReplyToMessageID = update.Message.MessageID
 
 	bot.Send(msg)
