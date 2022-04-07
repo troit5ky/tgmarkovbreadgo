@@ -1,6 +1,7 @@
 package generate
 
 import (
+	"math/rand"
 	db "tgmarkovbreadgo/database"
 
 	markov "cpl.li/go/markov"
@@ -16,7 +17,12 @@ func Generate(db *db.Api, id int64) string {
 	}()
 
 	ch := markov.NewChain(2)
-	ch.Add(db.GetMessages(id))
+
+	arr := db.GetMessages(id)
+	rand.Shuffle(len(arr), func(i, j int) {
+		arr[i], arr[j] = arr[j], arr[i]
+	})
+	ch.Add(arr)
 
 	b := ch.NewBuilder(nil)
 	b.Generate(100 - ch.PairSize)

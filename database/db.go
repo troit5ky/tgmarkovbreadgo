@@ -22,13 +22,17 @@ func (Api) AddMsg(id int64, txt string) {
 }
 
 func (Api) GetMessages(id int64) []string {
-	var msgsRaw []Message
 	var msgs []string
 
-	db.Where("group_id = ?", id).Find(&msgsRaw)
-	for _, raw := range msgsRaw {
-		msgs = append(msgs, raw.Text)
-	}
+	db.Select("text").Where("group_id = ?", id).Table("messages").Find(&msgs)
 
 	return msgs
+}
+
+func (Api) Count(id int64) int64 {
+	var count int64
+
+	db.Model(&Message{}).Where("group_id = ?", id).Count(&count)
+
+	return count
 }
