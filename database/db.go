@@ -36,3 +36,7 @@ func (Api) Count(id int64) int64 {
 
 	return count
 }
+
+func (Api) Reset(id int64) {
+
+}

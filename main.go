@@ -46,7 +46,13 @@ func main() {
 	}
 }
 
-func addMsg(id int64, txt string) {
+func addMsg(id int64, txt string, ents []tgbotapi.MessageEntity) {
+	for _, ent := range ents {
+		if ent.IsCommand() || ent.IsURL() {
+			return
+		}
+	}
+
 	txt = replacer.Replace(txt)
 
 	if count := rg.FindAllString(txt, -1); len(count) > 0 {
@@ -55,9 +61,13 @@ func addMsg(id int64, txt string) {
 }
 
 func tryToGen(update tgbotapi.Update) {
-	rnd := rand.Intn(8)
-	if rnd == 3 {
-		command["gen"].Func(update)
+	if update.Message.NewChatMembers == nil {
+		rnd := rand.Intn(19)
+		rand.Seed(time.Now().Unix())
+		rndsec := rand.Intn(19)
+		if rnd == rndsec {
+			command["gen"].Func(update)
+		}
 	}
 }
 
@@ -81,13 +91,21 @@ func handle(update tgbotapi.Update) {
 					}
 				}
 			} else if update.Message.Text != "" {
-				addMsg(update.FromChat().ID, update.Message.Text)
+				addMsg(update.FromChat().ID, update.Message.Text, update.Message.Entities)
 			} else if update.Message.Caption != "" {
-				addMsg(update.FromChat().ID, update.Message.Caption)
+				addMsg(update.FromChat().ID, update.Message.Caption, update.Message.CaptionEntities)
 			}
 
 			if update.Message.IsCommand() == false {
 				tryToGen(update)
+			}
+		}
+
+		if update.Message.NewChatMembers != nil {
+			for _, newMember := range update.Message.NewChatMembers {
+				if newMember.UserName == bot.Self.UserName {
+					command["start"].Func(update)
+				}
 			}
 		}
 	}
