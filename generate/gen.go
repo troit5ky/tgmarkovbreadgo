@@ -25,7 +25,7 @@ func Generate(db *db.Api, id int64) string {
 	ch.Add(arr)
 
 	b := ch.NewBuilder(nil)
-	b.Generate(100 - ch.PairSize)
+	b.Generate(30 - ch.PairSize)
 	result = b.String()
 
 	return result

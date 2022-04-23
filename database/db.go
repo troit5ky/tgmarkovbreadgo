@@ -38,5 +38,5 @@ func (Api) Count(id int64) int64 {
 }
 
 func (Api) Reset(id int64) {
-
+	db.Model(&Message{}).Where("group_id = ?", id).Unscoped().Delete(&Message{})
 }
