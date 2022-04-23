@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	token    = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
+	token = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
+	// token    = "624086120:AAHfg1F2At9lgfLcGdZv-vVIuUEPh91wK3Y"
 	dbApi    *db.Api
 	bot      *tgbotapi.BotAPI
 	command  commands.CommandList
@@ -47,16 +48,16 @@ func main() {
 }
 
 func addMsg(id int64, txt string, ents []tgbotapi.MessageEntity) {
-	for _, ent := range ents {
-		if ent.IsCommand() || ent.IsURL() {
-			return
-		}
+	if len(ents) > 0 {
+		return
 	}
 
 	txt = replacer.Replace(txt)
 
 	if count := rg.FindAllString(txt, -1); len(count) > 0 {
-		dbApi.AddMsg(id, txt)
+		if dbApi.Count(id) < 7000 {
+			dbApi.AddMsg(id, txt)
+		}
 	}
 }
 
