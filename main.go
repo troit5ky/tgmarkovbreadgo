@@ -10,13 +10,14 @@ import (
 
 	commands "tgmarkovbreadgo/commands"
 	db "tgmarkovbreadgo/database"
+	markov "tgmarkovbreadgo/generate"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var (
-	token = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
-	// token    = "624086120:AAHfg1F2At9lgfLcGdZv-vVIuUEPh91wK3Y"
+	// token = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
+	token    = "624086120:AAHfg1F2At9lgfLcGdZv-vVIuUEPh91wK3Y"
 	dbApi    *db.Api
 	bot      *tgbotapi.BotAPI
 	command  commands.CommandList
@@ -36,6 +37,7 @@ func main() {
 	log.Println("Authorized at @" + bot.Self.UserName)
 
 	dbApi = db.Init()
+	markov.Init(dbApi)
 	command = commands.Init(bot, dbApi)
 
 	u := tgbotapi.NewUpdate(0)
@@ -66,8 +68,14 @@ func tryToGen(update tgbotapi.Update) {
 		rnd := rand.Intn(19)
 		rand.Seed(time.Now().Unix())
 		rndsec := rand.Intn(19)
+
 		if rnd == rndsec {
-			command["gen"].Func(update)
+			result := markov.Generate(update.Message.Chat.ID)
+			if result != "" {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+				msg.Text = result
+				bot.Send(msg)
+			}
 		}
 	}
 }
@@ -81,7 +89,7 @@ func spamErr(update tgbotapi.Update) {
 
 func handle(update tgbotapi.Update) {
 	if update.Message != nil {
-		if update.Message.Chat.IsPrivate() == false && update.Message.Time().Add(time.Minute*15).Unix() > time.Now().Unix() {
+		if !update.Message.Chat.IsPrivate() && update.Message.Time().Add(time.Minute*15).Unix() > time.Now().Unix() {
 			if update.Message.IsCommand() && strings.HasSuffix(update.Message.CommandWithAt(), "@"+bot.Self.UserName) {
 				if cmd, ok := command[update.Message.Command()]; ok {
 					if lastMsg[update.Message.From.ID]+9 < time.Now().Unix() {
@@ -97,7 +105,7 @@ func handle(update tgbotapi.Update) {
 				addMsg(update.FromChat().ID, update.Message.Caption, update.Message.CaptionEntities)
 			}
 
-			if update.Message.IsCommand() == false {
+			if !update.Message.IsCommand() {
 				tryToGen(update)
 			}
 		}
@@ -107,6 +115,12 @@ func handle(update tgbotapi.Update) {
 				if newMember.UserName == bot.Self.UserName {
 					command["start"].Func(update)
 				}
+			}
+		}
+
+		if update.Message.LeftChatMember != nil {
+			if update.Message.LeftChatMember.ID == bot.Self.ID {
+				dbApi.Reset(update.Message.Chat.ID)
 			}
 		}
 	}

@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -21,19 +23,25 @@ func reset(update tgbotapi.Update) {
 		return
 	}
 
-	admins, _ := bot.GetChatAdministrators(tgbotapi.ChatAdministratorsConfig{
-		ChatConfig: update.Message.Chat.ChatConfig(),
+	member, err := bot.GetChatMember(tgbotapi.GetChatMemberConfig{
+		ChatConfigWithUser: tgbotapi.ChatConfigWithUser{
+			ChatID:             id,
+			SuperGroupUsername: update.Message.Chat.UserName,
+			UserID:             from,
+		},
 	})
-
-	for _, admin := range admins {
-		if admin.User.ID == from {
-			dbApi.Reset(id)
-			msg.Text = "🧹 База данных очищена!"
-			bot.Send(msg)
-			return
-		}
+	if err != nil {
+		msg.Text = fmt.Sprintf("произошла ошибка '%s'", err)
+		bot.Send(msg)
+		return
 	}
 
-	msg.Text = "😢 Ты не админ"
+	if member.IsAdministrator() || member.IsCreator() {
+		dbApi.Reset(id)
+		msg.Text = "🧹 База данных очищена!"
+	} else {
+		msg.Text = "😢 Ты не админ"
+	}
+
 	bot.Send(msg)
 }

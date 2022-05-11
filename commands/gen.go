@@ -14,7 +14,7 @@ var genCmd = Command{
 
 func gen(update tgbotapi.Update) {
 	id := update.Message.Chat.ID
-	result := markov.Generate(dbApi, id)
+	result := markov.Generate(id)
 	msg := tgbotapi.NewMessage(id, "")
 
 	if result == "" {
