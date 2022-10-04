@@ -65,11 +65,9 @@ func addMsg(id int64, txt string, ents []tgbotapi.MessageEntity) {
 
 func tryToGen(update tgbotapi.Update) {
 	if update.Message.NewChatMembers == nil {
-		rnd := rand.Intn(19)
-		rand.Seed(time.Now().Unix())
-		rndsec := rand.Intn(19)
+		rnd := rand.Intn(10)
 
-		if rnd == rndsec {
+		if rnd == 0 {
 			result := markov.Generate(update.Message.Chat.ID)
 			if result != "" {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
@@ -120,7 +118,7 @@ func handle(update tgbotapi.Update) {
 
 		if update.Message.LeftChatMember != nil {
 			if update.Message.LeftChatMember.ID == bot.Self.ID {
-				dbApi.Reset(update.Message.Chat.ID)
+				dbApi.Wipe(update.Message.Chat.ID)
 			}
 		}
 	}

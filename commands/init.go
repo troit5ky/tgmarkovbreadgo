@@ -34,7 +34,7 @@ func Init(b *tgbotapi.BotAPI, db *db.Api) CommandList {
 	commands["gen"] = genCmd
 	commands["stat"] = statCmd
 	commands["ping"] = pingCmd
-	commands["reset"] = resetCmd
+	commands["wipe"] = wipeCmd
 
 	for cmdName, cmd := range commands {
 		if cmd.Init != nil {

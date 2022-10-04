@@ -31,10 +31,10 @@ func help(update tgbotapi.Update) {
 		return
 	}
 
-	for cmd, _ := range commands {
+	for cmd := range commands {
 		fmt.Fprintf(cmds, "/%s\n", cmd)
 	}
 
-	msg.Text = fmt.Sprintf("📚 Список команд:\n%s\nПодробнее: /help команда | /help weather", cmds.String())
+	msg.Text = fmt.Sprintf("📚 Список команд:\n%s\nПодробнее: /help команда | /help gen", cmds.String())
 	bot.Send(msg)
 }
