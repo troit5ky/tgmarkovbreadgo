@@ -15,14 +15,14 @@ func Generate(id int64) string {
 		}
 	}()
 
-	ch := markov.NewChain(2)
+	ch := markov.NewChain(1)
 
 	for _, sentence := range dbApi.GetMessages(id) {
 		ch.Add(strings.Fields(sentence))
 	}
 
 	b := ch.NewBuilder(nil)
-	b.Generate(13 - ch.PairSize)
+	b.Generate(16 - ch.PairSize)
 	result = b.String()
 
 	return result
