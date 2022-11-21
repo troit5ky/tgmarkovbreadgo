@@ -1,8 +1,12 @@
 package database
 
+import "strings"
+
 type Api struct{}
 
 func (Api) AddMsg(id int64, txt string) {
+	txt = strings.ToLower(txt)
+
 	var gr *Group
 	var msg *Message
 
@@ -24,7 +28,7 @@ func (Api) AddMsg(id int64, txt string) {
 func (Api) GetMessages(id int64) []string {
 	var msgs []string
 
-	db.Select("text").Where("group_id = ?", id).Table("messages").Find(&msgs)
+	db.Model(&Message{}).Select("text").Where("group_id = ?", id).Find(&msgs)
 
 	return msgs
 }

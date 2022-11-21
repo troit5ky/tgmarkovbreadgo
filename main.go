@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	// token = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
-	token    = "624086120:AAHfg1F2At9lgfLcGdZv-vVIuUEPh91wK3Y"
+	token = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
+	// token    = "624086120:AAHfg1F2At9lgfLcGdZv-vVIuUEPh91wK3Y"
 	dbApi    *db.Api
 	bot      *tgbotapi.BotAPI
 	command  commands.CommandList
@@ -64,7 +64,7 @@ func addMsg(id int64, txt string, ents []tgbotapi.MessageEntity) {
 }
 
 func tryToGen(update tgbotapi.Update) {
-	if update.Message.NewChatMembers == nil {
+	if update.Message.NewChatMembers == nil && update.Message.ForwardFrom == nil {
 		rnd := rand.Intn(10)
 
 		if rnd == 0 {

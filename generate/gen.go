@@ -1,7 +1,7 @@
 package generate
 
 import (
-	"math/rand"
+	"strings"
 
 	markov "cpl.li/go/markov"
 )
@@ -17,14 +17,12 @@ func Generate(id int64) string {
 
 	ch := markov.NewChain(2)
 
-	arr := dbApi.GetMessages(id)
-	rand.Shuffle(len(arr), func(i, j int) {
-		arr[i], arr[j] = arr[j], arr[i]
-	})
-	ch.Add(arr)
+	for _, sentence := range dbApi.GetMessages(id) {
+		ch.Add(strings.Fields(sentence))
+	}
 
 	b := ch.NewBuilder(nil)
-	b.Generate(30 - ch.PairSize)
+	b.Generate(13 - ch.PairSize)
 	result = b.String()
 
 	return result
