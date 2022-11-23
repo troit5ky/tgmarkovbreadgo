@@ -9,6 +9,7 @@ import (
 	"time"
 
 	commands "tgmarkovbreadgo/commands"
+	"tgmarkovbreadgo/config"
 	db "tgmarkovbreadgo/database"
 	markov "tgmarkovbreadgo/generate"
 
@@ -16,8 +17,6 @@ import (
 )
 
 var (
-	token = "5157281753:AAEIKTXt_3k5_upTjdlOSFJ15tc57mkHr6o"
-	// token    = "624086120:AAHfg1F2At9lgfLcGdZv-vVIuUEPh91wK3Y"
 	dbApi    *db.Api
 	bot      *tgbotapi.BotAPI
 	command  commands.CommandList
@@ -27,8 +26,16 @@ var (
 )
 
 func main() {
-	_bot, err := tgbotapi.NewBotAPI(token)
+	log.Println("Starting...")
+
+	// CFG init
+	if err := config.Init(); err != nil {
+		return
+	}
+
+	_bot, err := tgbotapi.NewBotAPI(config.Config.Token)
 	if err != nil {
+		log.Println("Maybe check Bot Token?")
 		log.Panic(err)
 	}
 
@@ -57,7 +64,7 @@ func addMsg(id int64, txt string, ents []tgbotapi.MessageEntity) {
 	txt = replacer.Replace(txt)
 
 	if count := rg.FindAllString(txt, -1); len(count) > 0 {
-		if dbApi.Count(id) < 7000 {
+		if dbApi.Count(id) < config.Config.DatabaseLimit {
 			dbApi.AddMsg(id, txt)
 		}
 	}
@@ -80,7 +87,7 @@ func tryToGen(update tgbotapi.Update) {
 
 func spamErr(update tgbotapi.Update) {
 	msg := tgbotapi.NewMessage(update.FromChat().ID, "")
-	msg.Text = fmt.Sprintf("⌛️ Подожди %d сек...", 10-(time.Now().Unix()-lastMsg[update.Message.From.ID]))
+	msg.Text = fmt.Sprintf("⌛️ Подожди %d сек...", (config.Config.Cooldown+1)-(time.Now().Unix()-lastMsg[update.Message.From.ID]))
 	msg.ReplyToMessageID = update.Message.MessageID
 	bot.Send(msg)
 }
@@ -90,7 +97,7 @@ func handle(update tgbotapi.Update) {
 		if !update.Message.Chat.IsPrivate() && update.Message.Time().Add(time.Minute*15).Unix() > time.Now().Unix() {
 			if update.Message.IsCommand() && strings.HasSuffix(update.Message.CommandWithAt(), "@"+bot.Self.UserName) {
 				if cmd, ok := command[update.Message.Command()]; ok {
-					if lastMsg[update.Message.From.ID]+9 < time.Now().Unix() {
+					if lastMsg[update.Message.From.ID]+config.Config.Cooldown < time.Now().Unix() {
 						cmd.Func(update)
 						lastMsg[update.Message.From.ID] = time.Now().Unix()
 					} else {

@@ -1,3 +1,7 @@
-bot.db
+#types
+*.toml
+*.db
+*.exe
+
+#files
 main
-main.exe
