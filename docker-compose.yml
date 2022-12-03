@@ -4,5 +4,3 @@ services:
     volumes:
       - ./config.toml:/usr/src/app/config.toml
       - ./bot.db:/usr/src/app/bot.db
-  sqlite:
-    image: keinos/sqlite3
