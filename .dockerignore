@@ -1,0 +1,7 @@
+#types
+*.toml
+*.db
+*.exe
+
+#files
+main
