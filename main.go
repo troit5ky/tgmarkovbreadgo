@@ -86,10 +86,20 @@ func tryToGen(update tgbotapi.Update) {
 }
 
 func spamErr(update tgbotapi.Update) {
-	msg := tgbotapi.NewMessage(update.FromChat().ID, "")
-	msg.Text = fmt.Sprintf("⌛️ Подожди %d сек...", (config.Config.Cooldown+1)-(time.Now().Unix()-lastMsg[update.Message.From.ID]))
+	chatID := update.FromChat().ID
+	cooldown := config.Config.Cooldown + 1
+
+	msg := tgbotapi.NewMessage(chatID, "")
+	msg.Text = fmt.Sprintf("⌛️ Подожди %d сек...", (cooldown)-(time.Now().Unix()-lastMsg[update.Message.From.ID]))
 	msg.ReplyToMessageID = update.Message.MessageID
-	bot.Send(msg)
+	msgToDelete, _ := bot.Send(msg)
+
+	timerCd := time.Duration(int(cooldown)) * time.Second
+	timer := time.NewTimer(timerCd)
+
+	<-timer.C
+	msgDel := tgbotapi.NewDeleteMessage(chatID, msgToDelete.MessageID)
+	bot.Send(msgDel)
 }
 
 func handle(update tgbotapi.Update) {
