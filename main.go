@@ -87,10 +87,10 @@ func tryToGen(update tgbotapi.Update) {
 
 func spamErr(update tgbotapi.Update) {
 	chatID := update.FromChat().ID
-	cooldown := config.Config.Cooldown + 1
+	cooldown := (config.Config.Cooldown + 1) - (time.Now().Unix() - lastMsg[update.Message.From.ID])
 
 	msg := tgbotapi.NewMessage(chatID, "")
-	msg.Text = fmt.Sprintf("⌛️ Подожди %d сек...", (cooldown)-(time.Now().Unix()-lastMsg[update.Message.From.ID]))
+	msg.Text = fmt.Sprintf("⌛️ Подожди %d сек...", cooldown)
 	msg.ReplyToMessageID = update.Message.MessageID
 	msgToDelete, _ := bot.Send(msg)
 
